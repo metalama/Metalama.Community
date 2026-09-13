@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -24,8 +23,7 @@ namespace Metalama.Community.Costura.Tests;
 public sealed class RuntimeTemplateTests
 {
     /// <summary>
-    /// Gets the name and content of every runtime template, read from the internal <c>Resources</c> class of the
-    /// weaver assembly by reflection, so that this test covers exactly what the weaver injects.
+    /// Gets the name of every runtime template.
     /// </summary>
     public static TheoryData<string> TemplateNames
     {
@@ -33,9 +31,9 @@ public sealed class RuntimeTemplateTests
         {
             var data = new TheoryData<string>();
 
-            foreach ( var templateField in GetTemplateFields() )
+            foreach ( var templateName in RuntimeTemplates.Names )
             {
-                data.Add( templateField.Name );
+                data.Add( templateName );
             }
 
             return data;
@@ -46,7 +44,7 @@ public sealed class RuntimeTemplateTests
     [MemberData( nameof(TemplateNames) )]
     public void TemplateIsValidCSharp( string templateName )
     {
-        var source = GetTemplateSource( templateName );
+        var source = RuntimeTemplates.GetSource( templateName );
 
         Assert.False( string.IsNullOrWhiteSpace( source ), $"Template '{templateName}' is empty." );
 
@@ -80,8 +78,7 @@ public sealed class RuntimeTemplateTests
     [MemberData( nameof(TemplateNames) )]
     public void TemplateDoesNotCallAssemblyGetName( string templateName )
     {
-        var source = GetTemplateSource( templateName );
-        var root = CSharpSyntaxTree.ParseText( source ).GetRoot();
+        var root = CSharpSyntaxTree.ParseText( RuntimeTemplates.GetSource( templateName ) ).GetRoot();
 
         var callSites = root.DescendantNodes()
             .OfType<InvocationExpressionSyntax>()
@@ -99,33 +96,13 @@ public sealed class RuntimeTemplateTests
     [Fact]
     public void AllTemplatesAreCovered()
     {
-        // Guards against the template set silently shrinking, which would make the theory above vacuously green.
-        var names = GetTemplateFields().Select( f => f.Name ).ToList();
+        // Guards against the template set silently shrinking, which would make the theories above vacuously green.
+        var names = RuntimeTemplates.Names.ToList();
 
         Assert.Contains( "Common", names );
         Assert.Contains( "Template", names );
         Assert.Contains( "TemplateWithTempAssembly", names );
         Assert.Contains( "TemplateWithUnmanagedHandler", names );
         Assert.Contains( "ModuleInitializer", names );
-    }
-
-    private static string GetTemplateSource( string templateName )
-    {
-        var template = GetTemplateFields().Single( f => f.Name == templateName );
-
-        return (string) template.GetValue( null )!;
-    }
-
-    private static IEnumerable<FieldInfo> GetTemplateFields()
-    {
-        var resourcesType = Assembly.Load( "Metalama.Community.Costura.Weaver" )
-            .GetType( "Metalama.Community.Costura.Weaver.Resources" );
-
-        Assert.NotNull( resourcesType );
-
-        return resourcesType!
-            .GetFields( BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static )
-            .Where( f => f.IsLiteral && f.FieldType == typeof(string) )
-            .OrderBy( f => f.Name );
     }
 }
