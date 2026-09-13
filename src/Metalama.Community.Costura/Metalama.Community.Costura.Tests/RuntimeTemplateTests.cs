@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,7 +12,8 @@ using Xunit;
 namespace Metalama.Community.Costura.Tests;
 
 /// <summary>
-/// Verifies that the runtime templates injected into the user's compilation are valid C#.
+/// Verifies that the runtime templates injected into the user's compilation are valid C# and that they call no API
+/// that is unsafe inside an assembly-resolve handler.
 /// </summary>
 /// <remarks>
 /// These templates ship as string constants, so a syntax error in one of them does not break our own build -
@@ -44,8 +46,7 @@ public sealed class RuntimeTemplateTests
     [MemberData( nameof(TemplateNames) )]
     public void TemplateIsValidCSharp( string templateName )
     {
-        var template = GetTemplateFields().Single( f => f.Name == templateName );
-        var source = (string) template.GetValue( null )!;
+        var source = GetTemplateSource( templateName );
 
         Assert.False( string.IsNullOrWhiteSpace( source ), $"Template '{templateName}' is empty." );
 
@@ -63,6 +64,38 @@ public sealed class RuntimeTemplateTests
                 errors.Select( e => $"  {e.Location.GetLineSpan()}: {e.Id} {e.GetMessage( CultureInfo.InvariantCulture )}" ) ) );
     }
 
+    /// <summary>
+    /// Verifies that no runtime template calls <see cref="Assembly.GetName()" />.
+    /// </summary>
+    /// <remarks>
+    /// On .NET Framework, <c>Assembly.GetName()</c> issues a <c>FileIOPermission</c> path-discovery demand on the
+    /// assembly code base. The templates run inside the <c>AppDomain.AssemblyResolve</c> handler. When the security
+    /// policy makes that demand non-trivial, the security engine needs the localized text of the
+    /// <c>Security_Generic</c> resource key, and loading the satellite resource assembly that holds it raises
+    /// <c>AssemblyResolve</c> again. The handler then recurses until the stack overflows, which is issue #113.
+    /// <c>Assembly.FullName</c> exposes the same simple name, version and culture from a cached string and issues
+    /// no demand, so it is the safe way to identify an assembly that is already loaded.
+    /// </remarks>
+    [Theory]
+    [MemberData( nameof(TemplateNames) )]
+    public void TemplateDoesNotCallAssemblyGetName( string templateName )
+    {
+        var source = GetTemplateSource( templateName );
+        var root = CSharpSyntaxTree.ParseText( source ).GetRoot();
+
+        var callSites = root.DescendantNodes()
+            .OfType<InvocationExpressionSyntax>()
+            .Where( i => i.Expression is MemberAccessExpressionSyntax { Name.Identifier.ValueText: "GetName" } )
+            .ToList();
+
+        Assert.True(
+            callSites.Count == 0,
+            $"Template '{templateName}' calls GetName() on an assembly. This issues a path-discovery security demand, "
+            + "which can re-enter the AssemblyResolve handler and recurse until the stack overflows (issue #113). "
+            + "Use Assembly.FullName instead. Call sites:\n"
+            + string.Join( "\n", callSites.Select( c => $"  {c.GetLocation().GetLineSpan()}: {c}" ) ) );
+    }
+
     [Fact]
     public void AllTemplatesAreCovered()
     {
@@ -74,6 +107,13 @@ public sealed class RuntimeTemplateTests
         Assert.Contains( "TemplateWithTempAssembly", names );
         Assert.Contains( "TemplateWithUnmanagedHandler", names );
         Assert.Contains( "ModuleInitializer", names );
+    }
+
+    private static string GetTemplateSource( string templateName )
+    {
+        var template = GetTemplateFields().Single( f => f.Name == templateName );
+
+        return (string) template.GetValue( null )!;
     }
 
     private static IEnumerable<FieldInfo> GetTemplateFields()
