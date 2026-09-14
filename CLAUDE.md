@@ -29,13 +29,32 @@ Each aspect directory contains the aspect project, a `*.UnitTests`/`*.Tests` pro
 
 ## Building and Testing
 
-Because this is a **single solution**, `dotnet build` / `dotnet test` are normally sufficient — you rarely need `Build.ps1 build`. Per the `eng` skill, **never run `Build.ps1 build` yourself; ask the user.**
+Because the main product is a **single solution**, `dotnet build` / `dotnet test` are normally sufficient. This repository is small, so **you may run `Build.ps1 build` and `Build.ps1 test` yourself** — a full build takes about 15 seconds and a full test run about 25 seconds. This overrides the `eng` skill rule that tells you to ask the user. Run them in the background anyway, and do not touch the working tree while they run.
 
 Notes when a full build does happen:
 - `Build.ps1 build` does not build test projects, only packable ones.
 - `Build.ps1 test` implicitly does a clean rebuild, so do NOT chain it after `Build.ps1 build`. After a build, run test projects with `dotnet test <project> --no-build`.
 - MSBuild binlogs land under `artifacts/logs`.
 - After a failed build, run `Build.ps1 tools kill` to release file locks before retrying.
+
+### Restore failures on NU1603
+
+`error NU1603` at restore means the local artifacts of a dependency repository are older than the version this repository asks for. **Never suppress it** with `NoWarn`: the build then silently uses a different version of Metalama than the one it declares. Fix it instead:
+
+1. `Build.ps1 dependencies update` — downloads the current artifacts of Metalama and Metalama.Compiler and rewrites `eng/Versions.Debug.g.props`.
+2. `Build.ps1 build` (or `Build.ps1 prepare`) — regenerates `nuget.config`, which step 1 leaves untouched and which still points at the previous build directories.
+
+Both steps are needed. After step 1 alone, restore still fails, and the message changes to name a different resolved version.
+
+## Standalone Tests
+
+A standalone test lives outside `Metalama.Community.sln`, consumes the produced NuGet package instead of a project reference, and therefore covers the packaging itself — analyzer wiring, dependencies, `.props`/`.targets`. Each one has its own directory with a `Directory.Build.props`, a `.sln`, a `README.md` and the project, and is registered as a `DotNetSolution` with `IsTestOnly = true` in `eng/src/Program.cs`. `Build.ps1 test` runs them; `dotnet test <solution>` runs one, after `Build.ps1 build` has produced the packages.
+
+`dotnet test` needs something to invoke. Reference `Microsoft.NET.Test.Sdk` and override the `VSTest` target to run the application, as `Metalama.Community.Costura.ResolveRecursionTestApp` does, when the test is that the application runs and returns zero.
+
+Existing standalone tests:
+- `src\Metalama.Community.Virtuosity\Metalama.Community.Virtuosity.TestApp` — mocks a sealed class with Moq.
+- `src\Metalama.Community.Costura\Metalama.Community.Costura.ResolveRecursionTestApp` — the assembly-resolve recursion of issue #113.
 
 ## Aspect Tests
 
