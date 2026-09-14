@@ -1,0 +1,26 @@
+<Project>
+
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"/>
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net48</TargetFramework>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Metalama.Community.Costura" VersionOverride="$(MetalamaCommunityVersion)"/>
+        <PackageReference Include="Newtonsoft.Json"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    </ItemGroup>
+
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+
+    <!-- The `dotnet test` command calls the VSTest target. There is no test framework here: the test is that the
+         application runs and returns zero. -->
+    <Target Name="VSTest" DependsOnTargets="Build">
+        <Exec Command="&quot;$(TargetPath)&quot;"/>
+    </Target>
+
+</Project>
