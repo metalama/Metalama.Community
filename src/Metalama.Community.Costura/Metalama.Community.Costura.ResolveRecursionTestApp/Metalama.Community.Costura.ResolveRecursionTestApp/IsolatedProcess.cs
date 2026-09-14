@@ -90,7 +90,7 @@ internal static class IsolatedProcess
             startupInfo.HStdOutput = GetStdHandle( _stdOutputHandle );
             startupInfo.HStdError = GetStdHandle( _stdErrorHandle );
 
-            var commandLine = "\"" + fileName + "\" " + arguments;
+            var commandLine = new StringBuilder( "\"" + fileName + "\" " + arguments );
 
             if ( !CreateProcess(
                     null,
@@ -291,11 +291,12 @@ internal static class IsolatedProcess
         uint timeout,
         out IntPtr result );
 
+    // CreateProcessW parses lpCommandLine in place, so that parameter must be a writable buffer and not a string.
     [DllImport( "kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true )]
     [return: MarshalAs( UnmanagedType.Bool )]
     private static extern bool CreateProcess(
         string? applicationName,
-        string commandLine,
+        StringBuilder commandLine,
         IntPtr processAttributes,
         IntPtr threadAttributes,
         [MarshalAs( UnmanagedType.Bool )] bool inheritHandles,
