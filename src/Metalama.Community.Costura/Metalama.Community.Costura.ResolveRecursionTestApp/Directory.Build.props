@@ -1,0 +1,24 @@
+<Project InitialTargets="ValidateVersion">
+
+	<PropertyGroup>
+		<DisableCodeQuality>True</DisableCodeQuality>
+	</PropertyGroup>
+
+  <!-- Imports Directory.Build.props of the upper directory. Use this code in any non-root Directory.Build.* even if the file does not exist. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="Exists('$([MSBuild]::GetPathOfFileAbove(`Directory.Build.props`, `$(MSBuildThisFileDirectory)../`))')" />
+
+  <PropertyGroup>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+
+    <!-- The reproduction relies on the assembly being loaded from a code base that a path-discovery demand applies
+         to, and a strong name is irrelevant to it. Overrides the settings imported by StrongName.props. -->
+    <SignAssembly>False</SignAssembly>
+    <PublicSign>False</PublicSign>
+  </PropertyGroup>
+
+  <!-- Versions of dependencies -->
+  <Target Name="ValidateVersion">
+    <Error Text="The MetalamaCommunityVersion property is not defined. Check that 'Build.ps1 prepare' has been properly executed." Condition="'$(MetalamaCommunityVersion)'==''"/>
+  </Target>
+
+</Project>

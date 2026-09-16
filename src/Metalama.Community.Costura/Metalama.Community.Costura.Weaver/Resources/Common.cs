@@ -79,7 +79,13 @@ namespace Metalama.Community.Costura.RunTime
             var assemblies = currentDomain.GetAssemblies();
             foreach (var assembly in assemblies)
             {
-                var currentName = assembly.GetName();
+                // Do not call Assembly.GetName() here. On .NET Framework it issues a path-discovery security demand on
+                // the assembly code base. This method runs inside the AssemblyResolve handler, and the security engine
+                // loads the localized text of a resource key before it evaluates the demand. Loading that satellite
+                // resource assembly raises AssemblyResolve again, so the handler recurses until the stack overflows.
+                // Assembly.FullName reports the same simple name, version and culture from a cached string and issues
+                // no demand.
+                var currentName = new AssemblyName(assembly.FullName);
                 if (string.Equals(currentName.Name, name.Name, StringComparison.InvariantCultureIgnoreCase) &&
                     string.Equals(CultureToString(currentName.CultureInfo), CultureToString(name.CultureInfo), StringComparison.InvariantCultureIgnoreCase))
                 {

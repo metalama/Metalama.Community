@@ -45,6 +45,14 @@ var product = new Product( MetalamaDependencies.MetalamaCommunity )
             @"src\Metalama.Community.Virtuosity\Metalama.Community.Virtuosity.TestApp\Metalama.Community.Virtuosity.TestApp.sln" )
         {
             IsTestOnly = true
+        },
+
+        // A standalone test for issue #113: it runs a Costura-woven application whose assembly-resolve handler used
+        // to recurse into itself. See the README.md next to the solution.
+        new DotNetSolution(
+            @"src\Metalama.Community.Costura\Metalama.Community.Costura.ResolveRecursionTestApp\Metalama.Community.Costura.ResolveRecursionTestApp.sln" )
+        {
+            IsTestOnly = true
         }
     ],
     PublicArtifacts = Pattern.Create(
