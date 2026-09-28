@@ -58,7 +58,7 @@ Existing standalone tests:
 
 ## Aspect Tests
 
-`Metalama.Community.Virtuosity.UnitTests` and `Metalama.Community.AutoCancellationToken.UnitTests` are **snapshot aspect tests** using `Metalama.Testing.AspectTesting`. `Metalama.Community.Costura.Tests` is a classic xUnit project.
+`Metalama.Community.Virtuosity.UnitTests` and `Metalama.Community.AutoCancellationToken.UnitTests` are **snapshot aspect tests** using `Metalama.Testing.AspectTesting`. `Metalama.Community.Costura.Tests` is a classic xunit.v3 project. Every test project references `xunit.v3` and must be an executable (`<OutputType>Exe</OutputType>`), as xunit.v3 requires.
 
 - Each test is a `Foo.cs` (input) / `Foo.t.cs` (expected transformed output) pair. There is no `metalamaTests.json` and no runner class — tests are discovered from the `.cs` files compiled into the assembly.
 - Run them with `dotnet test` from the test project directory. Filter by the **bare file name**: `dotnet test --filter "AbstractClass"`.
