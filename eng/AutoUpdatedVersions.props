@@ -1,8 +1,9 @@
 <Project>
   <PropertyGroup>
-    <MetalamaCompilerVersion Condition="'$(MetalamaCompilerVersion)' == ''">2027.0.3-preview</MetalamaCompilerVersion>
-    <MetalamaVersion Condition="'$(MetalamaVersion)' == ''">2027.0.3-preview</MetalamaVersion>
-    <MetalamaCommunityReleaseVersion>2027.0.3-preview</MetalamaCommunityReleaseVersion>
-    <MetalamaCommunityReleaseMainVersion>2027.0.3</MetalamaCommunityReleaseMainVersion>
+    <MetalamaCompilerVersion Condition="'$(MetalamaCompilerVersion)' == ''">2027.0.4-preview</MetalamaCompilerVersion>
+    <MetalamaVersion Condition="'$(MetalamaVersion)' == ''">2027.0.4-preview</MetalamaVersion>
+    <MetalamaCommunityReleaseVersion>2027.0.4-preview</MetalamaCommunityReleaseVersion>
+    <MetalamaCommunityReleaseMainVersion>2027.0.4</MetalamaCommunityReleaseMainVersion>
+    <BackstageVersion Condition="'$(BackstageVersion)' == ''">2027.0.3-preview</BackstageVersion>
   </PropertyGroup>
 </Project>
