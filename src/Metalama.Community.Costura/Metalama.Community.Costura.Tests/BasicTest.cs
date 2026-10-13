@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Metalama.Community.Costura.Tests;
 

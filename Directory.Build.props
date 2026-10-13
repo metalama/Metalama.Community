@@ -17,6 +17,13 @@
         
         <!-- The latest version supported by Metalama Compiler may be higher that the latest version supported by Metalama Framework. -->
         <LangVersion>$(LangMaxVersion)</LangVersion>
+
+        <!-- The tests are written with xunit.v3 and are run by VSTest (xunit.runner.visualstudio), because the build
+             runs 'dotnet test' in its VSTest mode. xunit.v3 declares a test project to be a Microsoft.Testing.Platform
+             application by default, and the .NET 10 SDK refuses such a project in the VSTest mode. The property has
+             no effect on a project that does not reference xunit.v3. -->
+        <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+
     </PropertyGroup>
 
 </Project>

@@ -48,9 +48,9 @@ public sealed class RuntimeTemplateTests
 
         Assert.False( string.IsNullOrWhiteSpace( source ), $"Template '{templateName}' is empty." );
 
-        var syntaxTree = CSharpSyntaxTree.ParseText( source );
+        var syntaxTree = CSharpSyntaxTree.ParseText( source, cancellationToken: TestContext.Current.CancellationToken );
 
-        var errors = syntaxTree.GetDiagnostics()
+        var errors = syntaxTree.GetDiagnostics( TestContext.Current.CancellationToken )
             .Where( d => d.Severity == DiagnosticSeverity.Error )
             .ToList();
 
@@ -78,7 +78,8 @@ public sealed class RuntimeTemplateTests
     [MemberData( nameof(TemplateNames) )]
     public void TemplateDoesNotCallAssemblyGetName( string templateName )
     {
-        var root = CSharpSyntaxTree.ParseText( RuntimeTemplates.GetSource( templateName ) ).GetRoot();
+        var root = CSharpSyntaxTree.ParseText( RuntimeTemplates.GetSource( templateName ), cancellationToken: TestContext.Current.CancellationToken )
+            .GetRoot( TestContext.Current.CancellationToken );
 
         var callSites = root.DescendantNodes()
             .OfType<InvocationExpressionSyntax>()

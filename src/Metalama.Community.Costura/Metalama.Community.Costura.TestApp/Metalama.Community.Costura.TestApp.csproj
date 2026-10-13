@@ -11,7 +11,7 @@
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" />
         <PackageReference Include="Soothsilver.Random" />
-        <PackageReference Include="xunit.assert" />
+        <PackageReference Include="xunit.v3.assert" />
         <ProjectReference Include="..\Metalama.Community.Costura.Weaver\Metalama.Community.Costura.Weaver.csproj" />
         <PackageReference Include="Metalama.Framework" PrivateAssets="all" />
     </ItemGroup>
