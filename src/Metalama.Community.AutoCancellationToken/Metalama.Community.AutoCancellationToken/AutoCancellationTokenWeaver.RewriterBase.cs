@@ -58,9 +58,14 @@ namespace Metalama.Community.AutoCancellationToken
                 }
             }
 
+            // TypeSyntax is declared immutable by a MetalamaImmutableType item in the project file, but Metalama honors
+            // only the first item of the list (https://github.com/metalama/Metalama/issues/2283). Remove this
+            // suppression when that issue is fixed.
+#pragma warning disable LAMA0890
             protected static readonly TypeSyntax CancellationTokenType = SyntaxFactory
                 .ParseTypeName( typeof(CancellationToken).FullName! )
                 .WithSimplifierAnnotation();
+#pragma warning restore LAMA0890
 
             protected static bool IsCancellationToken( IParameterSymbol parameter )
                 => parameter.OriginalDefinition.Type.ToString() == typeof(CancellationToken).FullName;
