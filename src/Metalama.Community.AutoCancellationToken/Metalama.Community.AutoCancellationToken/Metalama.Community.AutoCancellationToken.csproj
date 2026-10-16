@@ -13,6 +13,13 @@
     <PackageReference Include="Metalama.Framework.Sdk" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Roslyn types that the weaver stores in static fields. They are immutable, but Roslyn does not mark them
+       with [ImmutableType], so the Metalama immutability analyzer must be told (LAMA0890). -->
+  <ItemGroup>
+    <MetalamaImmutableType Include="Microsoft.CodeAnalysis.DiagnosticDescriptor" />
+    <MetalamaImmutableType Include="Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax" />
+  </ItemGroup>
+
   <!-- Packaging -->
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="" />
