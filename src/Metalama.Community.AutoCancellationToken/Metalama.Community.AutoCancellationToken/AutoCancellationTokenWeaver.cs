@@ -13,6 +13,8 @@ namespace Metalama.Community.AutoCancellationToken
     [MetalamaPlugIn]
     internal partial class AutoCancellationTokenWeaver : IAspectWeaver
     {
+        // DiagnosticDescriptor is immutable, but Roslyn does not mark it with [ImmutableType].
+#pragma warning disable LAMA0890
         /// <summary>
         /// Reported when a member that takes part in virtual dispatch is left untransformed although its body calls
         /// something that would have accepted a <see cref="System.Threading.CancellationToken"/>. Without this, the
@@ -28,6 +30,7 @@ namespace Metalama.Community.AutoCancellationToken
             "Metalama.Community.AutoCancellationToken",
             DiagnosticSeverity.Warning,
             true );
+#pragma warning restore LAMA0890
 
         public async Task TransformAsync( AspectWeaverContext context )
         {

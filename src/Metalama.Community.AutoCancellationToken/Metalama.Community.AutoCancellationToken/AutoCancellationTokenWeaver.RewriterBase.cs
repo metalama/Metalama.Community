@@ -58,9 +58,12 @@ namespace Metalama.Community.AutoCancellationToken
                 }
             }
 
+            // Roslyn syntax nodes are immutable, but Roslyn does not mark them with [ImmutableType].
+#pragma warning disable LAMA0890
             protected static readonly TypeSyntax CancellationTokenType = SyntaxFactory
                 .ParseTypeName( typeof(CancellationToken).FullName! )
                 .WithSimplifierAnnotation();
+#pragma warning restore LAMA0890
 
             protected static bool IsCancellationToken( IParameterSymbol parameter )
                 => parameter.OriginalDefinition.Type.ToString() == typeof(CancellationToken).FullName;

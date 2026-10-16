@@ -5,6 +5,7 @@ using Metalama.Framework.Engine.AspectWeavers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -19,10 +20,10 @@ namespace Metalama.Community.Virtuosity
         private sealed class Rewriter : CSharpSyntaxRewriter
         {
             // An abstract member is implicitly virtual, so adding the virtual modifier to it is illegal (CS0503).
-            private static readonly SyntaxKind[] _forbiddenModifiers =
+            private static readonly ImmutableArray<SyntaxKind> _forbiddenModifiers =
                 [StaticKeyword, SealedKeyword, VirtualKeyword, OverrideKeyword, AbstractKeyword];
 
-            private static readonly SyntaxKind[] _requiredModifiers =
+            private static readonly ImmutableArray<SyntaxKind> _requiredModifiers =
                 [PublicKeyword, ProtectedKeyword, InternalKeyword];
 
             private static bool CanTransformType( MemberDeclarationSyntax node )
